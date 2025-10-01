@@ -1,0 +1,3738 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LUXCIVIC - Intelligent City Planning | Izmir's Intelligent City Management System">
+    <meta name="keywords" content="izmir, smart city, urban management, data analytics, optimization">
+    <meta name="author" content="LUXCIVIC">
+    <title>LUXCIVIC - Intelligent City Planning</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css">
+    
+    <style>
+        /* Prevent text selection and cursor */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        /* Allow text selection only in input fields and textareas */
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        /* Login styles */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: url('bg.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 99999;
+            padding: 1rem 2rem;
+            padding-top: 2vh; /* Reduced from 5vh to move everything higher up */
+        }
+
+        /* Adding a semi-transparent overlay to ensure content remains readable */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            z-index: -1;
+        }
+
+        body.login-active {
+            overflow: hidden;
+        }
+
+        body.login-active > *:not(.login-container) {
+            display: none !important;
+        }
+
+        .login-logo {
+            background: #FFFFFF;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 800px;
+            height: 240px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -4rem;
+        }
+
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .login-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.5s ease;
+            margin-top: -25px;
+        }
+
+        .login-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .login-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .login-tab.active {
+            color: #006064;
+            border-bottom: 2px solid #006064;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .login-input:focus {
+            border-color: #006064;
+            box-shadow: 0 0 5px rgba(0,96,100,0.2);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: #1a237e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            background: #283593;
+        }
+
+        /* Dynamic Menu Styles */
+        .dynamic-menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 9998;
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .menu-item {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(0, 96, 100, 0.1), rgba(0, 131, 143, 0.2));
+            color: #006064;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .menu-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #388e3c;
+            --score-1: #c62828;  /* En düşük - Koyu Kırmızı */
+            --score-2: #d32f2f;  /* Kırmızı */
+            --score-3: #e53935;  /* Açık Kırmızı */
+            --score-4: #f44336;  /* Kırmızı-Turuncu */
+            --score-5: #ff5722;  /* Turuncu */
+            --score-6: #ff9800;  /* Açık Turuncu */
+            --score-7: #fdd835;  /* Sarı */
+            --score-8: #8bc34a;  /* Açık Yeşil */
+            --score-9: #4caf50;  /* Yeşil */
+            --score-10: #388e3c; /* Koyu Yeşil */
+            --score-11: #2e7d32; /* En yüksek - En Koyu Yeşil */
+            --light-color: #e8f5e9;
+            --dark-color: #212121;
+            --transition: all 0.3s ease-in-out;
+            --izmir-blue: #006064;
+            --izmir-teal: #00838f;
+            --izmir-light: #e0f7fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: url('https://images.pexels.com/photos/2656502/pexels-photo-2656502.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--dark-color);
+            line-height: 1.6;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Arka plan overlay'i için yeni stil */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.82) 0%,
+                rgba(255, 255, 255, 0.75) 50%,
+                rgba(255, 255, 255, 0.68) 100%
+            );
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* İzmir Landmark Siluetleri - Kaldırıldı */
+        body::after {
+            display: none;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, rgba(0, 96, 100, 0.95), rgba(0, 131, 143, 0.95));
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.75rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--izmir-light) !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+            color: var(--izmir-light) !important;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--izmir-light);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+
+        #map { 
+            height: 500px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 2px solid var(--izmir-blue);
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .score-card {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .score-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .score-card .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-card .metric-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-card small {
+            display: flex;
+            align-items: center;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .score-card small:hover {
+            opacity: 1;
+        }
+
+        .score-card .progress {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        .score-card .progress-bar {
+            transition: width 0.6s ease;
+        }
+
+        .score-high { 
+            background: linear-gradient(135deg, rgba(46,125,50,0.1), rgba(56,142,60,0.2));
+            border-left: 6px solid var(--score-11);
+        }
+
+        .score-medium { 
+            background: linear-gradient(135deg, rgba(255,152,0,0.1), rgba(253,216,53,0.2));
+            border-left: 6px solid var(--score-6);
+        }
+
+        .score-low { 
+            background: linear-gradient(135deg, rgba(198,40,40,0.1), rgba(211,47,47,0.2));
+            border-left: 6px solid var(--score-1);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--izmir-blue);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--izmir-teal);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .action-item {
+            padding: 20px;
+            margin: 0;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.85);
+            border-left: 5px solid var(--izmir-blue);
+            transition: var(--transition);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px);
+            height: 100%;
+        }
+
+        .recommendations-category {
+            margin-top: 1rem;
+        }
+
+        .recommendations-category h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 10px 0;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .recommendations-category .badge {
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 20px;
+        }
+
+        .recommendations-divider {
+            border-color: rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .action-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .action-item h5 {
+            color: var(--izmir-blue);
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .action-item p {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .score-improvement {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .improvement-high {
+            background-color: rgba(46,125,50,0.15);
+            color: var(--score-11);
+            border: 1px solid var(--score-11);
+        }
+
+        .improvement-medium {
+            background-color: rgba(255,152,0,0.15);
+            color: var(--score-6);
+            border: 1px solid var(--score-6);
+        }
+
+        .improvement-low {
+            background-color: rgba(198,40,40,0.15);
+            color: var(--score-1);
+            border: 1px solid var(--score-1);
+        }
+
+        .feedback-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        .custom-tooltip {
+            background: rgba(0,96,100,0.95);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            max-width: 300px;
+        }
+
+        .btn-primary {
+            background: var(--score-11);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            background: var(--score-10);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        footer {
+            background: linear-gradient(135deg, rgba(0, 96, 100, 0.95), rgba(0, 131, 143, 0.95));
+            color: var(--izmir-light);
+            padding: 2rem 0;
+            margin-top: 4rem;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            #map {
+                height: 500px;
+            }
+            
+            .metric-value {
+                font-size: 2rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .stats-content {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--izmir-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.positive {
+            background: var(--score-11);
+        }
+
+        .progress-fill.negative {
+            background: var(--score-1);
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+
+        .stats-info h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--dark-color);
+        }
+
+        .stats-info p {
+            margin: 5px 0;
+            color: var(--izmir-teal);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .change-rate {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .change-rate.positive {
+            background-color: rgba(46,125,50,0.1);
+            color: var(--score-11);
+        }
+
+        .change-rate.negative {
+            background-color: rgba(198,40,40,0.1);
+            color: var(--score-1);
+        }
+
+        .neighborhood-stats {
+            padding: 0.5rem;
+        }
+
+        .neighborhood-stats::-webkit-scrollbar {
+            display: none;
+        }
+
+        .neighborhood-stats::-webkit-scrollbar-track {
+            display: none;
+        }
+
+        .neighborhood-stats::-webkit-scrollbar-thumb {
+            display: none;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            width: 100%;
+            position: relative;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 20px 0;
+            min-height: 250px;
+        }
+
+        .stat-chart-wrapper {
+            position: relative;
+            height: 250px;
+        }
+
+        .actions-list {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .actions-list li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .actions-list li:before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--izmir-blue);
+        }
+
+        .stat-title {
+            font-weight: 600;
+            color: var(--izmir-blue);
+        }
+
+        .stat-score {
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stat-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .detail-label {
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+
+        .detail-value {
+            font-weight: 600;
+        }
+
+        .expand-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--izmir-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .expand-button:hover {
+            background: var(--izmir-teal);
+            transform: translateY(-2px);
+        }
+
+        .expanded-stats {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .expanded-stats.show {
+            display: block;
+        }
+
+        /* Geri bildirim listesi için ek stiller */
+       
+
+        #feedbackList .table th {
+            border-bottom: 2px solid var(--izmir-blue);
+            color: var(--izmir-blue);
+            font-weight: 600;
+        }
+
+        #feedbackList .table td {
+            vertical-align: middle;
+            padding: 1rem;
+        }
+
+        #feedbackList .badge {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+
+        #feedbackList .progress {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        #feedbackList .text-wrap {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            line-height: 1.4;
+        }
+
+        .score-card small {
+            display: flex;
+            align-items: center;
+            color: var(--dark-color);
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .score-card small:hover {
+            opacity: 1;
+        }
+
+        @media (min-width: 768px) {
+            .neighborhood-stats,
+            #scoreCards {
+                height: calc(100vh - 300px);
+                overflow-y: auto;
+                padding-right: 10px;
+            }
+
+            .neighborhood-stats::-webkit-scrollbar,
+            #scoreCards::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .neighborhood-stats::-webkit-scrollbar-track,
+            #scoreCards::-webkit-scrollbar-track {
+                background: rgba(0,0,0,0.1);
+                border-radius: 3px;
+            }
+
+            .neighborhood-stats::-webkit-scrollbar-thumb,
+            #scoreCards::-webkit-scrollbar-thumb {
+                background: var(--izmir-blue);
+                border-radius: 3px;
+            }
+        }
+
+        // Skor kartı renk fonksiyonu
+        function getScoreCardColors(score) {
+            if (score >= 0.9) { // 9.0-10.0 - Mükemmel
+                return {
+                    scoreColor: '#2e7d32', // Koyu yeşil
+                    backgroundColor: '#e8f5e9', // Açık yeşil
+                    borderColor: '#4caf50' // Orta yeşil
+                };
+            } else if (score >= 0.7) { // 7.0-8.9 - İyi
+                return {
+                    scoreColor: '#fdd835', // Koyu sarı
+                    backgroundColor: '#fffde7', // Açık sarı
+                    borderColor: '#ffeb3b' // Orta sarı
+                };
+            } else if (score >= 0.5) { // 5.0-6.9 - Orta
+                return {
+                    scoreColor: '#ff9800', // Koyu turuncu
+                    backgroundColor: '#fff3e0', // Açık turuncu
+                    borderColor: '#ffa726' // Orta turuncu
+                };
+            } else { // 5.0'dan düşük - Düşük
+                return {
+                    scoreColor: '#c62828', // Koyu kırmızı
+                    backgroundColor: '#ffebee', // Açık kırmızı
+                    borderColor: '#ef5350' // Orta kırmızı
+                };
+            }
+        }
+
+        // Semt detayları bölümünü oluştur
+        function createNeighborhoodStats() {
+            const statsContainer = document.getElementById('neighborhoodStats');
+            const scoreCardsContainer = document.getElementById('scoreCards');
+            
+            // Semtleri puana göre sırala (düşükten yükseğe)
+            const sortedNeighborhoods = Object.values(mahalleVerileri)
+                .sort((a, b) => a.genelSkor - b.genelSkor);
+
+            // Her iki container'ı da temizle
+            statsContainer.innerHTML = '';
+            scoreCardsContainer.innerHTML = '';
+
+            // Her semt için detay ve skor kartlarını oluştur
+            sortedNeighborhoods.forEach((mahalle, index) => {
+                const scoreColor = getScoreColor(mahalle.genelSkor, allScores);
+                const cardColors = getScoreCardColors(mahalle.genelSkor);
+                
+                // Semt detay kartı
+                const statItem = document.createElement('div');
+                statItem.className = 'stat-item';
+                statItem.setAttribute('data-index', index);
+                
+                // Header
+                const header = `
+                    <div class="stat-header">
+                        <div class="stat-title" style="font-size: 1.2rem; font-weight: 600;">${mahalle.ad}</div>
+                        <div class="stat-score" style="background: ${cardColors.backgroundColor}20; color: ${cardColors.scoreColor}; padding: 5px 10px; border-radius: 5px;">
+                            ${(mahalle.genelSkor * 10).toFixed(1)}
+                        </div>
+                    </div>
+                `;
+
+                // Charts container
+                const chartsContainer = `
+                    <div class="stat-charts-container">
+                        <div class="stat-chart-wrapper">
+                            <canvas id="radarChart_${index}"></canvas>
+                        </div>
+                        <div class="stat-chart-wrapper">
+                            <canvas id="trendChart_${index}"></canvas>
+                        </div>
+                    </div>
+                `;
+
+                // Actions
+                const actions = `
+                    <div class="actions-list">
+                        <strong>Önerilen Aksiyonlar:</strong>
+                        <ul class="mt-2">
+                            ${mahalle.onerilenAksiyonlar.map(({aksiyon}) => `<li>${aksiyon}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                statItem.innerHTML = header + chartsContainer + actions;
+                statsContainer.appendChild(statItem);
+
+                // Skor kartı
+                const scoreCard = document.createElement('div');
+                scoreCard.className = 'score-card animate__animated animate__fadeIn';
+                scoreCard.setAttribute('data-index', index);
+                
+                // Use custom colors if defined for specific neighborhoods
+                const customColors = mahalle.colors || cardColors;
+                scoreCard.style.backgroundColor = customColors.backgroundColor;
+                scoreCard.style.borderLeft = `5px solid ${customColors.borderColor}`;
+                
+                scoreCard.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 style="color: ${customColors.scoreColor}">${mahalle.ad}</h4>
+                        <small class="text-muted">Sıralama: ${index + 1}</small>
+                    </div>
+                    <div class="metric-value" style="color: ${customColors.scoreColor}">${(mahalle.genelSkor * 10).toFixed(1)}</div>
+                    <div class="metric-label" style="color: ${customColors.scoreColor}">Genel Skor</div>
+                    <div class="progress mt-2 mb-3" style="height: 8px; background: rgba(0,0,0,0.05);">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             style="width: ${mahalle.genelSkor * 100}%; background-color: ${customColors.scoreColor}">
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-road me-1"></i>Altyapı: ${(mahalle.altyapiSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-tree me-1"></i>Çevre: ${(mahalle.cevreSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-users me-1"></i>Sosyal: ${(mahalle.sosyalSkor * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-bus me-1"></i>Ulaşım: ${(mahalle.ulasimSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-shield-alt me-1"></i>Güvenlik: ${(mahalle.guvenlikSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-graduation-cap me-1"></i>Eğitim: ${(mahalle.egitimSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-heartbeat me-1"></i>Sağlık: ${(mahalle.saglikSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-12">
+                            <hr style="margin: 0.5rem 0; opacity: 0.2;">
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-exclamation-triangle me-1"></i>Kontrolsüz Göç: ${((1 - mahalle.kontrolsuzGocSkoru) * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-home me-1"></i>Gecekondulaşma: ${((1 - mahalle.gecekondulasmaSkor) * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-user-shield me-1"></i>Suç Oranı: ${((1 - mahalle.sucOranıSkoru) * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-car me-1"></i>Trafik: ${((1 - mahalle.trafıkYogunluguSkoru) * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${customColors.scoreColor}"><i class="fas fa-volume-up me-1"></i>Gürültü: ${((1 - mahalle.gurultuKirlilikSkoru) * 10).toFixed(1)}</small>
+                        </div>
+                    </div>
+                `;
+                
+                scoreCardsContainer.appendChild(scoreCard);
+
+                // Radar Chart
+                const radarCtx = document.getElementById(`radarChart_${index}`).getContext('2d');
+                new Chart(radarCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Altyapı', 'Çevre', 'Sosyal', 'Ulaşım', 'Güvenlik', 'Eğitim', 'Sağlık', 'Göç Kontrolü', 'Yapılaşma', 'Güvenlik', 'Trafik', 'Gürültü'],
+                        datasets: [{
+                            label: 'Pozitif Kriterler',
+                            data: [
+                                mahalle.altyapiSkoru * 10,
+                                mahalle.cevreSkoru * 10,
+                                mahalle.sosyalSkor * 10,
+                                mahalle.ulasimSkoru * 10,
+                                mahalle.guvenlikSkoru * 10,
+                                mahalle.egitimSkoru * 10,
+                                mahalle.saglikSkoru * 10,
+                                (1 - mahalle.kontrolsuzGocSkoru) * 10,
+                                (1 - mahalle.gecekondulasmaSkor) * 10,
+                                (1 - mahalle.sucOranıSkoru) * 10,
+                                (1 - mahalle.trafıkYogunluguSkoru) * 10,
+                                (1 - mahalle.gurultuKirlilikSkoru) * 10
+                            ],
+                            backgroundColor: `${cardColors.backgroundColor}40`,
+                            borderColor: cardColors.borderColor,
+                            borderWidth: 2,
+                            pointBackgroundColor: cardColors.borderColor,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 10,
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+
+                // Trend Chart
+                const trendCtx = document.getElementById(`trendChart_${index}`).getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1Ç', '2Ç', '3Ç', '4Ç'],
+                        datasets: [{
+                            label: 'Trend',
+                            data: mahalle.trendData.map(score => score * 10),
+                            borderColor: cardColors.borderColor,
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: `${cardColors.backgroundColor}20`
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: Math.min(...mahalle.trendData.map(score => score * 10)) - 1,
+                                max: Math.max(...mahalle.trendData.map(score => score * 10)) + 1
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Scroll senkronizasyonu
+            statsContainer.addEventListener('scroll', () => {
+                const scrollPercentage = statsContainer.scrollTop / (statsContainer.scrollHeight - statsContainer.clientHeight);
+                scoreCardsContainer.scrollTop = scrollPercentage * (scoreCardsContainer.scrollHeight - scoreCardsContainer.clientHeight);
+            });
+
+            scoreCardsContainer.addEventListener('scroll', () => {
+                const scrollPercentage = scoreCardsContainer.scrollTop / (scoreCardsContainer.scrollHeight - scoreCardsContainer.clientHeight);
+                statsContainer.scrollTop = scrollPercentage * (statsContainer.scrollHeight - statsContainer.clientHeight);
+            });
+        }
+
+        /* Navigation tab styles */
+        .navbar-nav .nav-link {
+            font-size: 0.9em;
+            padding: 0.4rem 0.8rem;
+        }
+        
+        /* Container for nav items */
+        .navbar-collapse {
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+        
+        /* Adjust spacing between brand and nav items */
+        .navbar > .container {
+            justify-content: flex-start;
+        }
+        
+        .navbar-brand {
+            flex: 0 0 auto;
+            margin-right: 2rem;
+        }
+    </style>
+    <style>
+        .score-card {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: var(--transition);
+        }
+
+        .score-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .score-card .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-card .metric-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login System -->
+    <div class="login-container" id="loginContainer">
+        <img src="LuxCivic_logo_white_bg-removebg-preview.png" alt="LuxCivic Logo" style="width: 280px; height: auto; margin: 0; padding: 0; margin-bottom: -15px;">
+        <div class="login-box">
+            <div class="login-tabs">
+                <div class="login-tab active" onclick="switchTab('employee')">Belediye Çalışanı</div>
+                <div class="login-tab" onclick="switchTab('citizen')">Vatandaş</div>
+            </div>
+            <div class="login-form active" id="employeeForm">
+                <input type="text" class="login-input" placeholder="TC Kimlik No" id="employeeTc">
+                <input type="password" class="login-input" placeholder="Şifre" id="employeePassword">
+                <button class="login-button" onclick="login('employee')">Giriş Yap</button>
+            </div>
+            <div class="login-form" id="citizenForm">
+                <input type="text" class="login-input" placeholder="TC Kimlik No" id="citizenTc">
+                <button class="login-button" onclick="login('citizen')">Giriş Yap</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Menu -->
+    <div class="dynamic-menu" id="dynamicMenu">
+        <div class="menu-item" onclick="scrollToSection('dashboard')">
+            <i class="fas fa-chart-line"></i>
+            <h4>Dashboard</h4>
+        </div>
+        <div class="menu-item" onclick="scrollToSection('analysis')">
+            <i class="fas fa-analytics"></i>
+            <h4>Analiz</h4>
+        </div>
+        <div class="menu-item employee-only" onclick="scrollToSection('budget')">
+            <i class="fas fa-money-bill-wave"></i>
+            <h4>Semt Bütçe Planlaması</h4>
+        </div>
+        <div class="menu-item" onclick="scrollToSection('negativeAspects')">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h4>Risk Analizi</h4>
+        </div>
+        <div class="menu-item citizen-only" onclick="scrollToSection('feedbackSubmission')">
+            <i class="fas fa-comment-alt"></i>
+            <h4>Vatandaş Bildirim Formu</h4>
+        </div>
+        <div class="menu-item" onclick="scrollToSection('feedbackList')">
+            <i class="fas fa-list-alt"></i>
+            <h4>Geri Bildirim Listesi</h4>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container position-relative">
+            <a class="navbar-brand d-flex align-items-center" href="#" style="margin-left: -15mm;">
+                <img src="yeni.png" alt="LuxCivic Logo" style="height: 4em; width: auto; margin-right: 1mm; transform: translateY(-4mm) translateX(4mm); filter: brightness(0) invert(1); vertical-align: middle;">
+                <span style="vertical-align: middle; font-size: 1.3em; font-weight: 600; margin-left: -4mm;">LUXCIVIC</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#dashboard">
+                            <i class="fas fa-chart-line me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#analysis">
+                            <i class="fas fa-analytics me-1"></i>Analiz
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#investments">
+                            <i class="fas fa-hand-holding-usd me-1"></i>Yatırımlar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#budget">
+                            <i class="fas fa-money-bill-wave me-1"></i>Semt Bütçe Planlaması
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#negativeAspects">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Risk Analizi
+                        </a>
+                    </li>
+                    <li class="nav-item citizen-only">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#feedbackSubmission">
+                            <i class="fas fa-comment-alt me-1"></i>Vatandaş Bildirim Formu
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link animate_animated animate_fadeIn" href="#feedbackList">
+                            <i class="fas fa-list-alt me-1"></i>Geri Bildirim Listesi
+                        </a>
+                    </li>
+                </ul>
+                <button class="btn btn-outline-light" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Çıkış
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <div class="container mt-5 pt-5">
+        <!-- Genel İstatistikler -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3>7.2</h3>
+                            <p>Ortalama Şehir Puanı</p>
+                            <div class="change-rate positive">
+                                <i class="fas fa-arrow-up"></i> +0.3
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill positive" style="width: 30%;"></div>
+                        </div>
+                        <div class="progress-text">
+                            Geçen ay: 6.9 → Bu ay: 7.2 (+4.3% artış)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-icon warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3>4</h3>
+                            <p>Kritik Bölge Sayısı</p>
+                            <div class="change-rate negative">
+                                <i class="fas fa-arrow-down"></i> -2
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill negative" style="width: 33%;"></div>
+                        </div>
+                        <div class="progress-text">
+                            Geçen ay: 6 → Bu ay: 4 (33.3% azalış)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-icon danger">
+                            <i class="fas fa-comment-alt"></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3>183</h3>
+                            <p>Toplam Şikayet</p>
+                            <div class="change-rate negative">
+                                <i class="fas fa-arrow-down"></i> -12%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill negative" style="width: 12%;"></div>
+                        </div>
+                        <div class="progress-text">
+                            Geçen ay: 208 → Bu ay: 183 (12% azalış)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-content">
+                        <div class="stats-icon success">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="stats-info">
+                            <h3>89%</h3>
+                            <p>Kaynak Verimliliği</p>
+                            <div class="change-rate positive">
+                                <i class="fas fa-arrow-up"></i> +5%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill positive" style="width: 45%;"></div>
+                        </div>
+                        <div class="progress-text">
+                            Geçen ay: 84% → Bu ay: 89% (+5.9% artış)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aylık Değişim Grafiği -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0">
+                            <i class="fas fa-chart-line me-2" style="color: #006064;"></i>
+                            <span style="color: #006064; font-weight: 600;">Aylık Değişim Analizi</span>
+                    </h3>
+                        <div class="trend-indicators d-flex gap-3">
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #006064; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #006064; font-weight: 500;">Şehir Puanı</small>
+                            </div>
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #ff9800; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #ff9800; font-weight: 500;">Kritik Bölgeler</small>
+                            </div>
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #c62828; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #c62828; font-weight: 500;">Şikayetler</small>
+                            </div>
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #2e7d32; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #2e7d32; font-weight: 500;">Kaynak Verimliliği</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 300px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; padding: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);">
+                        <canvas id="monthlyTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Bölümü -->
+        <div class="row" id="dashboard">
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <h2 class="mb-4">
+                        <i class="fas fa-map-marked-alt me-2"></i>
+                        İzmir Semtleri Haritası
+                    </h2>
+                    <div id="map" class="mb-3"></div>
+                    <div class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Harita üzerindeki bölgelere tıklayarak detaylı bilgi alabilirsiniz.
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="mb-4">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Semt Detayları
+                            </h3>
+                            <div class="neighborhood-stats" id="neighborhoodStats"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <h3 class="mb-4">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Yaşanabilirlik Puanları
+                            </h3>
+                            <div id="scoreCards"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analiz Bölümü -->
+        <div class="row mt-4" id="analysis">
+            <div class="col-12 mb-4">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0">
+                            <i class="fas fa-chart-bar me-2" style="color: #006064;"></i>
+                            <span style="color: #006064; font-weight: 600;">Performans Analizi</span>
+                        </h3>
+                        <div class="trend-indicators d-flex gap-3">
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #006064; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #006064; font-weight: 500;">Altyapı</small>
+                            </div>
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #2e7d32; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #2e7d32; font-weight: 500;">Çevre</small>
+                            </div>
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #ff9800; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #ff9800; font-weight: 500;">Sosyal</small>
+                            </div>
+                            <div class="trend-item d-flex align-items-center">
+                                <span class="trend-dot" style="width: 12px; height: 12px; border-radius: 50%; background: #c62828; display: inline-block; margin-right: 8px;"></span>
+                                <small style="color: #c62828; font-weight: 500;">Ulaşım</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 300px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; padding: 20px; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <h3 class="mb-4">
+                        <i class="fas fa-tasks me-2"></i>
+                        Önerilen Aksiyonlar
+                    </h3>
+                    <div class="row g-3" id="recommendations">
+                        <!-- Dinamik olarak doldurulacak -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bütçe Planlama Bölümü -->
+        <div class="row mb-4" id="budget">
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <div class="d-flex align-items-center mb-3">
+                        <h3 class="mb-0">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            Semt Bütçe Planlaması
+                        </h3>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="stats-card" style="height: auto;">
+                                <div class="stats-content">
+                                    <div class="stats-info">
+                                        <div class="form-group">
+                                            <label class="form-label h6">Toplam Bütçe (TL)</label>
+                                            <div class="input-group">
+                                                <input type="number" id="totalBudgetInput" class="form-control" 
+                                                       placeholder="Bütçe miktarı...">
+                                                <button onclick="calculateBudgetAllocation()" class="btn btn-primary">
+                                                    <i class="fas fa-calculator me-1"></i>Hesapla
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card" style="height: auto;">
+                                <div class="stats-content">
+                                    <div class="stats-info">
+                                        <h6>Dağıtım Kriterleri</h6>
+                                        <div class="row g-0">
+                                            <div class="col-6">
+                                                <small><i class="fas fa-check-circle me-1 text-success"></i>Semt puanı</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small><i class="fas fa-check-circle me-1 text-success"></i>Altyapı</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small><i class="fas fa-check-circle me-1 text-success"></i>Nüfus</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small><i class="fas fa-check-circle me-1 text-success"></i>Öncelikler</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card" style="height: auto;">
+                                <canvas id="budgetDistributionChart" style="max-height: 120px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bütçe Dağılım Tablosu -->
+                    <div class="table-responsive mt-3">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Semt</th>
+                                    <th>Puan</th>
+                                    <th>Pay (%)</th>
+                                    <th>Bütçe (TL)</th>
+                                    <th>Öncelikli Yatırım</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budgetAllocationTable">
+                                <!-- Dinamik olarak doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Negatif Yönler Bölümü -->
+        <div class="row mt-4 mb-5" id="negativeAspects">
+            <div class="col-12">
+                <div class="dashboard-card animate__animated animate__fadeIn">
+                    <h3 class="mb-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Semt Risk Analizi
+                    </h3>
+                        <div class="row">
+                        <div class="col-md-8">
+                            <div class="chart-container">
+                                <canvas id="negativeAspectsChart"></canvas>
+                                </div>
+                            </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5 class="mb-3">Risk Faktörleri Açıklaması</h5>
+                                <div class="risk-factors">
+                                    <div class="risk-factor mb-3">
+                                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                                        <strong>Kontrolsüz Göç:</strong>
+                                        <p class="small text-muted mb-0">Plansız nüfus artışı ve demografik değişimler</p>
+                                </div>
+                                    <div class="risk-factor mb-3">
+                                        <i class="fas fa-home me-2 text-warning"></i>
+                                        <strong>Gecekondulaşma:</strong>
+                                        <p class="small text-muted mb-0">Düzensiz yapılaşma ve kentsel doku bozulması</p>
+                            </div>
+                                    <div class="risk-factor mb-3">
+                                        <i class="fas fa-user-shield me-2 text-warning"></i>
+                                        <strong>Suç Oranı:</strong>
+                                        <p class="small text-muted mb-0">Asayiş olayları ve güvenlik riskleri</p>
+                        </div>
+                                    <div class="risk-factor mb-3">
+                                        <i class="fas fa-car me-2 text-warning"></i>
+                                        <strong>Trafik Yoğunluğu:</strong>
+                                        <p class="small text-muted mb-0">Ulaşım sorunları ve trafik sıkışıklığı</p>
+                        </div>
+                                    <div class="risk-factor mb-3">
+                                        <i class="fas fa-volume-up me-2 text-warning"></i>
+                                        <strong>Gürültü Kirliliği:</strong>
+                                        <p class="small text-muted mb-0">Çevresel gürültü ve ses kirliliği</p>
+                        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Detay Tablosu -->
+                    <div class="table-responsive mt-4">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Semt</th>
+                                    <th>Kontrolsüz Göç</th>
+                                    <th>Gecekondulaşma</th>
+                                    <th>Suç Oranı</th>
+                                    <th>Trafik Yoğunluğu</th>
+                                    <th>Gürültü Kirliliği</th>
+                                    <th>Toplam Risk Puanı</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riskTableBody">
+                                <!-- JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Yıllık Risk Değişim Tablosu -->
+                    <div class="mt-4">
+                        <h4 class="mb-3">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Yıllık Risk Değişim Analizi
+                        </h4>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Semt</th>
+                                        <th>2021</th>
+                                        <th>2022</th>
+                                        <th>2023</th>
+                                        <th>2024</th>
+                                        <th>Değişim Trendi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Alsancak</strong></td>
+                                        <td>2.1</td>
+                                        <td>1.9</td>
+                                        <td>1.8</td>
+                                        <td>1.6</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: 75%"></div>
+                                                </div>
+                                                <span class="ms-2 text-success">
+                                                    <i class="fas fa-arrow-down"></i> -23.8%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Karşıyaka</strong></td>
+                                        <td>2.4</td>
+                                        <td>2.2</td>
+                                        <td>2.0</td>
+                                        <td>1.8</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: 70%"></div>
+                                                </div>
+                                                <span class="ms-2 text-success">
+                                                    <i class="fas fa-arrow-down"></i> -25.0%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Göztepe</strong></td>
+                                        <td>2.8</td>
+                                        <td>2.6</td>
+                                        <td>2.4</td>
+                                        <td>2.2</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: 65%"></div>
+                                                </div>
+                                                <span class="ms-2 text-success">
+                                                    <i class="fas fa-arrow-down"></i> -21.4%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Çiğli</strong></td>
+                                        <td>3.0</td>
+                                        <td>2.9</td>
+                                        <td>2.7</td>
+                                        <td>2.5</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: 55%"></div>
+                                                </div>
+                                                <span class="ms-2 text-warning">
+                                                    <i class="fas fa-arrow-down"></i> -16.7%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Narlıdere</strong></td>
+                                        <td>3.2</td>
+                                        <td>3.1</td>
+                                        <td>2.9</td>
+                                        <td>2.8</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: 45%"></div>
+                                                </div>
+                                                <span class="ms-2 text-warning">
+                                                    <i class="fas fa-arrow-down"></i> -12.5%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Bornova</strong></td>
+                                        <td>3.4</td>
+                                        <td>3.5</td>
+                                        <td>3.3</td>
+                                        <td>3.2</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: 40%"></div>
+                                                </div>
+                                                <span class="ms-2 text-warning">
+                                                    <i class="fas fa-arrow-down"></i> -5.9%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Konak</strong></td>
+                                        <td>3.8</td>
+                                        <td>3.9</td>
+                                        <td>3.7</td>
+                                        <td>3.5</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-warning" style="width: 35%"></div>
+                                                </div>
+                                                <span class="ms-2 text-warning">
+                                                    <i class="fas fa-arrow-down"></i> -7.9%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Buca</strong></td>
+                                        <td>4.0</td>
+                                        <td>4.2</td>
+                                        <td>4.1</td>
+                                        <td>3.9</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-danger" style="width: 30%"></div>
+                                                </div>
+                                                <span class="ms-2 text-danger">
+                                                    <i class="fas fa-arrow-down"></i> -2.5%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Bayraklı</strong></td>
+                                        <td>4.2</td>
+                                        <td>4.4</td>
+                                        <td>4.5</td>
+                                        <td>4.3</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-danger" style="width: 25%"></div>
+                                                </div>
+                                                <span class="ms-2 text-danger">
+                                                    <i class="fas fa-arrow-up"></i> +2.4%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Gaziemir</strong></td>
+                                        <td>4.5</td>
+                                        <td>4.6</td>
+                                        <td>4.7</td>
+                                        <td>4.6</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1" style="height: 8px;">
+                                                    <div class="progress-bar bg-danger" style="width: 20%"></div>
+                                                </div>
+                                                <span class="ms-2 text-danger">
+                                                    <i class="fas fa-arrow-up"></i> +2.2%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yatırımlar Bölümü -->
+        <div class="row mt-4" id="investments">
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="mb-0">
+                            <i class="fas fa-hand-holding-usd me-2" style="color: #006064;"></i>
+                            <span style="color: #006064; font-weight: 600;">Yatırımlar</span>
+                        </h3>
+                        <button class="btn btn-primary citizen-only" onclick="showInvestmentForm()">
+                            <i class="fas fa-plus me-2"></i>Yeni Yatırım Yap
+                        </button>
+                    </div>
+
+                    <!-- Yatırımcılar Tablosu -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Yatırımcı</th>
+                                    <th>Yatırım Miktarı</th>
+                                    <th>Proje</th>
+                                    <th>Durum</th>
+                                    <th>İlerleme</th>
+                                </tr>
+                            </thead>
+                            <tbody id="investmentsTableBody">
+                                <!-- JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Yatırım Formu (Vatandaş görünümü için) -->
+                    <div id="investmentForm" class="mt-4" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="investmentAmount">Yatırım Miktarı (TL)</label>
+                                    <input type="number" class="form-control" id="investmentAmount" min="1000">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="projectSelect">Proje Seçimi</label>
+                                    <select class="form-control" id="projectSelect">
+                                        <option value="">Proje Seçiniz</option>
+                                        <!-- JavaScript ile doldurulacak -->
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary" onclick="submitInvestment()">
+                                    <i class="fas fa-check me-2"></i>Yatırımı Onayla
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="project-details p-3 border rounded">
+                                    <h5>Proje Detayları</h5>
+                                    <div id="projectDetails">
+                                        Lütfen bir proje seçiniz.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vatandaş Bildirimi Formu -->
+        <div class="row mt-4 citizen-only" id="feedbackSubmission">
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <h3 class="mb-4">
+                        <i class="fas fa-comment-alt me-2"></i>
+                        Vatandaş Bildirim Formu
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <form id="feedbackForm" onsubmit="submitFeedback(event)">
+                                <div class="mb-3">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="showNameFields" onchange="toggleNameFields()" checked disabled>
+                                        <label class="form-check-label" for="showNameFields">
+                                            İsim ve soyisim (zorunlu)
+                                        </label>
+                                    </div>
+                                    <div id="nameFields">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <input type="text" class="form-control" id="firstName" placeholder="İsim" required>
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <input type="text" class="form-control" id="lastName" placeholder="Soyisim" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="feedbackSemt" class="form-label">Semt</label>
+                                    <select class="form-control" id="feedbackSemt" required>
+                                        <option value="">Semt Seçiniz</option>
+                                        <option value="Alsancak">Alsancak</option>
+                                        <option value="Karşıyaka">Karşıyaka</option>
+                                        <option value="Bornova">Bornova</option>
+                                        <option value="Konak">Konak</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="feedbackCategory" class="form-label">Kategori</label>
+                                    <select class="form-control" id="feedbackCategory" required>
+                                        <option value="">Kategori Seçiniz</option>
+                                        <option value="Altyapı">Altyapı</option>
+                                        <option value="Çevre">Çevre</option>
+                                        <option value="Ulaşım">Ulaşım</option>
+                                        <option value="Sosyal">Sosyal</option>
+                                        <option value="Diğer">Diğer</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="feedbackRating" class="form-label">Değerlendirme Puanı: <span id="ratingValue">5</span></label>
+                                    <input type="range" class="form-range" id="feedbackRating" min="1" max="10" value="5" 
+                                           oninput="document.getElementById('ratingValue').textContent = this.value" required>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">1</small>
+                                        <small class="text-muted">10</small>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="feedbackMessage" class="form-label">Mesajınız</label>
+                                    <textarea class="form-control" id="feedbackMessage" rows="4" required
+                                        placeholder="İstek, dilek veya şikayetinizi buraya yazınız..."></textarea>
+                                </div>
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Bildirimi Gönder
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Geri Bildirim Listesi Bölümü -->
+        <div class="row mt-4 mb-5" id="feedbackList">
+            <div class="col-12">
+                <div class="dashboard-card animate_animated animate_fadeIn">
+                    <h3 class="mb-4">
+                        <i class="fas fa-list-alt me-2"></i>
+                        Vatandaş Bildirimleri
+                    </h3>
+                    <div id="feedbackMessages" class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>İsim</th>
+                                    <th>Semt</th>
+                                    <th>Kategori</th>
+                                    <th>Puan</th>
+                                    <th>Mesaj</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feedbackTableBody">
+                                <!-- Dinamik olarak doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>LuxCivic</h5>
+                    <p class="small">Intelligent City Planning | Izmir's Intelligent City Management System</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="small">&copy; 2025 LuxCivic. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js"></script>
+
+    <script>
+        // İzmir semtleri verileri
+        const mahalleVerileri = {
+            1: {
+                ad: "Alsancak",
+                koordinat: [38.4382, 27.1433],
+                radius: 600, // Adjusted radius for district size
+                altyapiSkoru: 0.95,
+                cevreSkoru: 0.92,
+                sosyalSkor: 0.98,
+                ulasimSkoru: 0.96,
+                guvenlikSkoru: 0.94,
+                egitimSkoru: 0.97,
+                saglikSkoru: 0.93,
+                genelSkor: 0.95,
+                kontrolsuzGocSkoru: 0.15, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.10, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.08, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.25, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.30, // Düşük skor iyi (az gürültü)
+                trendData: [0.91, 0.93, 0.94, 0.95],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Kordon boyunca bisiklet yolu genişletme", potansiyelPuan: 1.8},
+                    {aksiyon: "Tarihi binaların restorasyonu", potansiyelPuan: 1.5},
+                    {aksiyon: "Akıllı park sistemi kurulumu", potansiyelPuan: 1.2}
+                ]
+            },
+            2: {
+                ad: "Karşıyaka",
+                koordinat: [38.4682, 27.1255],
+                radius: 800, // Adjusted radius for district size
+                altyapiSkoru: 0.91,
+                cevreSkoru: 0.89,
+                sosyalSkor: 0.93,
+                ulasimSkoru: 0.92,
+                guvenlikSkoru: 0.90,
+                egitimSkoru: 0.92,
+                saglikSkoru: 0.91,
+                genelSkor: 0.91,
+                kontrolsuzGocSkoru: 0.20,
+                gecekondulasmaSkor: 0.15,
+                sucOranıSkoru: 0.12,
+                trafıkYogunluguSkoru: 0.35,
+                gurultuKirlilikSkoru: 0.40,
+                trendData: [0.87, 0.89, 0.90, 0.91],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Sahil şeridi modernizasyonu", potansiyelPuan: 1.9},
+                    {aksiyon: "Yaya bölgesi genişletme", potansiyelPuan: 1.4},
+                    {aksiyon: "Kültür merkezi renovasyonu", potansiyelPuan: 1.3}
+                ]
+            },
+            3: {
+                ad: "Göztepe",
+                koordinat: [38.4012, 27.0892],
+                altyapiSkoru: 0.88,
+                cevreSkoru: 0.85,
+                sosyalSkor: 0.90,
+                ulasimSkoru: 0.89,
+                guvenlikSkoru: 0.87,
+                egitimSkoru: 0.89,
+                saglikSkoru: 0.88,
+                genelSkor: 0.88,
+                kontrolsuzGocSkoru: 0.18, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.12, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.10, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.30, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.35, // Düşük skor iyi (az gürültü)
+                trendData: [0.85, 0.86, 0.87, 0.88],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Sahil rekreasyon alanı", potansiyelPuan: 1.7},
+                    {aksiyon: "Spor kompleksi modernizasyonu", potansiyelPuan: 1.6},
+                    {aksiyon: "Akıllı trafik sistemi", potansiyelPuan: 1.4}
+                ],
+                colors: {
+                    scoreColor: '#388e3c',
+                    backgroundColor: '#e8f5e9',
+                    borderColor: '#4caf50'
+                }
+            },
+            4: {
+                ad: "Çiğli",
+                koordinat: [38.4925, 27.0432],
+                altyapiSkoru: 0.82,
+                cevreSkoru: 0.79,
+                sosyalSkor: 0.84,
+                ulasimSkoru: 0.83,
+                guvenlikSkoru: 0.81,
+                egitimSkoru: 0.83,
+                saglikSkoru: 0.82,
+                genelSkor: 0.82,
+                kontrolsuzGocSkoru: 0.25, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.20, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.15, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.35, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.40, // Düşük skor iyi (az gürültü)
+                trendData: [0.79, 0.80, 0.81, 0.82],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Organize sanayi modernizasyonu", potansiyelPuan: 2.0},
+                    {aksiyon: "Kuş cenneti koruma projesi", potansiyelPuan: 1.5},
+                    {aksiyon: "Toplu konut alanı düzenlemesi", potansiyelPuan: 1.3}
+                ],
+                colors: {
+                    scoreColor: '#388e3c',
+                    backgroundColor: '#e8f5e9',
+                    borderColor: '#4caf50'
+                }
+            },
+            5: {
+                ad: "Narlıdere",
+                koordinat: [38.3942, 27.0092],
+                altyapiSkoru: 0.78,
+                cevreSkoru: 0.75,
+                sosyalSkor: 0.80,
+                ulasimSkoru: 0.79,
+                guvenlikSkoru: 0.77,
+                egitimSkoru: 0.79,
+                saglikSkoru: 0.78,
+                genelSkor: 0.78,
+                kontrolsuzGocSkoru: 0.30, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.25, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.20, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.40, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.45, // Düşük skor iyi (az gürültü)
+                trendData: [0.75, 0.76, 0.77, 0.78],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Sahil yolu genişletme", potansiyelPuan: 1.8},
+                    {aksiyon: "Askeri alan çevre düzenlemesi", potansiyelPuan: 1.4},
+                    {aksiyon: "Spor tesisleri yapımı", potansiyelPuan: 1.6}
+                ],
+                colors: {
+                    scoreColor: '#ffd700',
+                    backgroundColor: '#fff8e1',
+                    borderColor: '#ffb300'
+                }
+            },
+            6: {
+                ad: "Bornova",
+                koordinat: [38.4683, 27.2144],
+                altyapiSkoru: 0.72,
+                cevreSkoru: 0.68,
+                sosyalSkor: 0.75,
+                ulasimSkoru: 0.73,
+                guvenlikSkoru: 0.70,
+                egitimSkoru: 0.85,
+                saglikSkoru: 0.71,
+                genelSkor: 0.73,
+                kontrolsuzGocSkoru: 0.35, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.30, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.25, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.45, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.50, // Düşük skor iyi (az gürültü)
+                trendData: [0.70, 0.71, 0.72, 0.73],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Üniversite çevresi düzenlemesi", potansiyelPuan: 1.9},
+                    {aksiyon: "Metro bağlantı hatları", potansiyelPuan: 2.0},
+                    {aksiyon: "Teknoloji merkezi kurulumu", potansiyelPuan: 1.7}
+                ],
+                colors: {
+                    scoreColor: '#f9a825',
+                    backgroundColor: '#fffde7',
+                    borderColor: '#fbc02d'
+                }
+            },
+            7: {
+                ad: "Konak",
+                koordinat: [38.4192, 27.1350],
+                altyapiSkoru: 0.65,
+                cevreSkoru: 0.62,
+                sosyalSkor: 0.68,
+                ulasimSkoru: 0.66,
+                guvenlikSkoru: 0.64,
+                egitimSkoru: 0.67,
+                saglikSkoru: 0.65,
+                genelSkor: 0.65,
+                kontrolsuzGocSkoru: 0.40, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.35, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.30, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.50, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.55, // Düşük skor iyi (az gürültü)
+                trendData: [0.62, 0.63, 0.64, 0.65],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Kemeraltı restorasyon projesi", potansiyelPuan: 2.1},
+                    {aksiyon: "Tarihi asansör çevre düzenlemesi", potansiyelPuan: 1.6},
+                    {aksiyon: "Kültür rotası oluşturma", potansiyelPuan: 1.4}
+                ],
+                colors: {
+                    scoreColor: '#ffb300',
+                    backgroundColor: '#fff3e0',
+                    borderColor: '#ff8f00'
+                }
+            },
+            8: {
+                ad: "Buca",
+                koordinat: [38.3825, 27.1717],
+                altyapiSkoru: 0.55,
+                cevreSkoru: 0.52,
+                sosyalSkor: 0.58,
+                ulasimSkoru: 0.56,
+                guvenlikSkoru: 0.54,
+                egitimSkoru: 0.59,
+                saglikSkoru: 0.53,
+                genelSkor: 0.55,
+                kontrolsuzGocSkoru: 0.45, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.40, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.35, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.55, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.60, // Düşük skor iyi (az gürültü)
+                trendData: [0.52, 0.53, 0.54, 0.55],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Şirinyer parkı yenileme", potansiyelPuan: 1.5},
+                    {aksiyon: "Toplu taşıma güzergah optimizasyonu", potansiyelPuan: 1.8},
+                    {aksiyon: "Eğitim kampüsü geliştirme", potansiyelPuan: 1.7}
+                ]
+            },
+            9: {
+                ad: "Bayraklı",
+                koordinat: [38.4578, 27.1728],
+                altyapiSkoru: 0.45,
+                cevreSkoru: 0.42,
+                sosyalSkor: 0.48,
+                ulasimSkoru: 0.46,
+                guvenlikSkoru: 0.44,
+                egitimSkoru: 0.47,
+                saglikSkoru: 0.43,
+                genelSkor: 0.45,
+                kontrolsuzGocSkoru: 0.50, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.45, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.40, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.60, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.65, // Düşük skor iyi (az gürültü)
+                trendData: [0.42, 0.43, 0.44, 0.45],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Sahil düzenleme projesi", potansiyelPuan: 1.9},
+                    {aksiyon: "Yeşil alan artırımı", potansiyelPuan: 1.7},
+                    {aksiyon: "Sosyal tesis yapımı", potansiyelPuan: 1.5}
+                ]
+            },
+            10: {
+                ad: "Gaziemir",
+                koordinat: [38.3292, 27.1417],
+                altyapiSkoru: 0.35,
+                cevreSkoru: 0.32,
+                sosyalSkor: 0.38,
+                ulasimSkoru: 0.36,
+                guvenlikSkoru: 0.34,
+                egitimSkoru: 0.37,
+                saglikSkoru: 0.33,
+                genelSkor: 0.35,
+                kontrolsuzGocSkoru: 0.55, // Düşük skor iyi (az kontrolsüz göç)
+                gecekondulasmaSkor: 0.50, // Düşük skor iyi (az gecekondulaşma)
+                sucOranıSkoru: 0.45, // Düşük skor iyi (düşük suç oranı)
+                trafıkYogunluguSkoru: 0.65, // Düşük skor iyi (az trafik)
+                gurultuKirlilikSkoru: 0.70, // Düşük skor iyi (az gürültü)
+                trendData: [0.32, 0.33, 0.34, 0.35],
+                onerilenAksiyonlar: [
+                    {aksiyon: "Serbest bölge altyapı yenileme", potansiyelPuan: 2.0},
+                    {aksiyon: "Havalimanı bağlantı yolları", potansiyelPuan: 1.8},
+                    {aksiyon: "Yeşil alan projesi", potansiyelPuan: 1.6}
+                ]
+            }
+        };
+
+        // Harita oluşturma ve yapılandırma
+        const map = L.map('map', {
+            minZoom: 11,
+            maxZoom: 14,
+            maxBounds: [
+                [38.2, 26.8], // Southwest coordinates of İzmir
+                [38.6, 27.4]  // Northeast coordinates of İzmir
+            ]
+        }).setView([38.4192, 27.1287], 11);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Skor renk fonksiyonu güncelleme
+        function getScoreColor(score, allScores) {
+            const scores = allScores || Object.values(mahalleVerileri).map(m => m.genelSkor);
+            const minScore = Math.min(...scores);
+            const maxScore = Math.max(...scores);
+            const range = maxScore - minScore;
+            const step = range / 10;
+            const position = (score - minScore) / step;
+            const colorScale = [
+                '#c62828', '#d32f2f', '#e53935', '#f44336', '#ff5722',
+                '#ff9800', '#fdd835', '#8bc34a', '#4caf50', '#388e3c', '#2e7d32'
+            ];
+            const colorIndex = Math.min(Math.floor(position), 10);
+            return colorScale[colorIndex];
+        }
+
+        // Grafik renk fonksiyonu
+        function getChartColors() {
+            return [
+                '#c62828', '#d32f2f', '#e53935', '#f44336', '#ff5722',
+                '#ff9800', '#fdd835', '#8bc34a', '#4caf50', '#388e3c', '#2e7d32'
+            ];
+        }
+
+        // Harita ve kartları güncelleme
+        const allScores = Object.values(mahalleVerileri).map(m => m.genelSkor);
+
+        // Mahalleleri haritaya ekleme
+        Object.entries(mahalleVerileri).forEach(([id, mahalle]) => {
+            const color = getScoreColor(mahalle.genelSkor, allScores);
+            L.circle(mahalle.koordinat, {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.5,
+                radius: mahalle.radius || 1000, // Use custom radius if defined, otherwise default to 1000
+                weight: 2 // Border thickness
+            }).bindPopup(createMapPopupContent(mahalle, allScores)).addTo(map);
+        });
+
+        // Skor kartlarını oluşturma
+        const scoreCards = document.getElementById('scoreCards');
+        Object.entries(mahalleVerileri)
+            .sort(([,a], [,b]) => a.genelSkor - b.genelSkor) // Küçükten büyüğe sıralama
+            .forEach(([id, mahalle]) => {
+                scoreCards.innerHTML += createScoreCard(mahalle, allScores);
+            });
+
+        // Performans grafiği güncelleme
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1. Çeyrek', '2. Çeyrek', '3. Çeyrek', '4. Çeyrek'],
+                datasets: [
+                    {
+                        label: 'Altyapı',
+                        data: [7.2, 7.4, 7.6, 7.8],
+                        borderColor: '#006064',
+                        backgroundColor: 'rgba(0, 96, 100, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Çevre',
+                        data: [6.8, 7.0, 7.2, 7.4],
+                        borderColor: '#2e7d32',
+                        backgroundColor: 'rgba(46, 125, 50, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Sosyal',
+                        data: [7.5, 7.7, 7.9, 8.1],
+                        borderColor: '#ff9800',
+                        backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Ulaşım',
+                        data: [7.0, 7.2, 7.4, 7.6],
+                        borderColor: '#c62828',
+                        backgroundColor: 'rgba(198, 40, 40, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#006064',
+                        bodyColor: '#006064',
+                        borderColor: 'rgba(0, 96, 100, 0.2)',
+                        borderWidth: 2,
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        boxPadding: 4,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.parsed.y;
+                                return `${label}: ${value}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 96, 100, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#006064'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#006064'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Önerilen aksiyonları gösterme
+        const recommendations = document.getElementById('recommendations');
+        
+        // Tüm aksiyonları topla ve kategorize et
+        const allActions = [];
+        Object.values(mahalleVerileri).forEach(mahalle => {
+            mahalle.onerilenAksiyonlar.forEach(({aksiyon, potansiyelPuan}) => {
+                allActions.push({
+                    mahalle: mahalle.ad,
+                    aksiyon,
+                    potansiyelPuan
+                });
+            });
+        });
+
+        // Aksiyonları potansiyel puana göre sırala (yüksekten düşüğe)
+        allActions.sort((a, b) => b.potansiyelPuan - a.potansiyelPuan);
+
+        // Kategorilere ayır
+        const categories = {
+            high: allActions.filter(a => a.potansiyelPuan >= 1.8),
+            medium: allActions.filter(a => a.potansiyelPuan >= 1.5 && a.potansiyelPuan < 1.8),
+            low: allActions.filter(a => a.potansiyelPuan < 1.5)
+        };
+
+        // Her kategori için başlık ve renk tanımla
+        const categoryDefinitions = {
+            high: {
+                title: 'Yüksek Öncelikli Aksiyonlar',
+                color: 'var(--score-11)',
+                icon: 'fa-arrow-trend-up'
+            },
+            medium: {
+                title: 'Orta Öncelikli Aksiyonlar',
+                color: 'var(--score-6)',
+                icon: 'fa-arrow-right-long'
+            },
+            low: {
+                title: 'Düşük Öncelikli Aksiyonlar',
+                color: 'var(--score-1)',
+                icon: 'fa-arrow-trend-down'
+            }
+        };
+
+        // Kategorileri HTML'e ekle
+        recommendations.innerHTML = '';
+        Object.entries(categories).forEach(([category, actions]) => {
+            if (actions.length > 0) {
+                const def = categoryDefinitions[category];
+                
+                // Kategori başlığı
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'col-12 mb-3';
+                categoryHeader.innerHTML = `
+                    <h4 class="d-flex align-items-center" style="color: ${def.color}">
+                        <i class="fas ${def.icon} me-2"></i>
+                        ${def.title}
+                        <span class="badge ms-2 px-3 py-2" style="background: ${def.color}20; color: ${def.color}">
+                            ${actions.length} aksiyon
+                        </span>
+                    </h4>
+                `;
+                recommendations.appendChild(categoryHeader);
+
+                // Aksiyonları ekle
+                actions.forEach(({mahalle, aksiyon, potansiyelPuan}) => {
+                    const actionDiv = document.createElement('div');
+                    actionDiv.className = 'col-md-4 col-sm-6';
+                    
+                    const improvementClass = category === 'high' ? 'improvement-high' : 
+                                          category === 'medium' ? 'improvement-medium' : 
+                                          'improvement-low';
+                    
+                    actionDiv.innerHTML = `
+                        <div class="action-item" style="border-left-color: ${def.color}">
+                            <h5>${mahalle}</h5>
+                            <p>${aksiyon}</p>
+                            <div class="score-improvement ${improvementClass}" style="background-color: ${def.color}20; color: ${def.color}; border-color: ${def.color}">
+                                <i class="fas ${def.icon} me-1"></i>
+                                Potansiyel İyileşme: +${potansiyelPuan.toFixed(1)} puan
+                            </div>
+                        </div>
+                    `;
+                    recommendations.appendChild(actionDiv);
+                });
+
+                // Kategori ayırıcı
+                if (category !== 'low') {
+                    const divider = document.createElement('div');
+                    divider.className = 'col-12';
+                    divider.innerHTML = '<hr class="my-4">';
+                    recommendations.appendChild(divider);
+                }
+            }
+        });
+
+        // Yardımcı fonksiyonlar
+        function createMapPopupContent(mahalle, allScores) {
+            const scoreColor = getScoreColor(mahalle.genelSkor, allScores);
+            return `
+                <div class="custom-tooltip" style="background: ${scoreColor}20">
+                    <h5>${mahalle.ad}</h5>
+                    <p>Genel Skor: ${(mahalle.genelSkor * 10).toFixed(1)}/10</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-road me-2"></i>Altyapı: ${(mahalle.altyapiSkoru * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-tree me-2"></i>Çevre: ${(mahalle.cevreSkoru * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-users me-2"></i>Sosyal: ${(mahalle.sosyalSkor * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-bus me-2"></i>Ulaşım: ${(mahalle.ulasimSkoru * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-shield-alt me-2"></i>Güvenlik: ${(mahalle.guvenlikSkoru * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-graduation-cap me-2"></i>Eğitim: ${(mahalle.egitimSkoru * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-heartbeat me-2"></i>Sağlık: ${(mahalle.saglikSkoru * 10).toFixed(1)}/10</li>
+                        <li class="mt-2" style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
+                            <strong><i class="fas fa-exclamation-circle me-2"></i>Risk Faktörleri:</strong>
+                        </li>
+                        <li><i class="fas fa-exclamation-triangle me-2"></i>Kontrolsüz Göç: ${((1 - mahalle.kontrolsuzGocSkoru) * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-home me-2"></i>Gecekondulaşma: ${((1 - mahalle.gecekondulasmaSkor) * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-user-shield me-2"></i>Suç Oranı: ${((1 - mahalle.sucOranıSkoru) * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-car me-2"></i>Trafik Yoğunluğu: ${((1 - mahalle.trafıkYogunluguSkoru) * 10).toFixed(1)}/10</li>
+                        <li><i class="fas fa-volume-up me-2"></i>Gürültü Kirliliği: ${((1 - mahalle.gurultuKirlilikSkoru) * 10).toFixed(1)}/10</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function createScoreCard(mahalle, allScores) {
+            const scoreColor = getScoreColor(mahalle.genelSkor, allScores);
+            const scoreClass = mahalle.genelSkor >= 0.9 ? 'score-high' : 
+                              mahalle.genelSkor >= 0.8 ? 'score-medium' : 'score-low';
+            
+            return `
+                <div class="score-card ${scoreClass} animate__animated animate__fadeIn">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 style="color: ${scoreColor}">${mahalle.ad}</h4>
+                        <small class="text-muted">Sıralama: ${getScoringRank(mahalle.genelSkor)}</small>
+                    </div>
+                    <div class="metric-value" style="color: ${scoreColor}">${(mahalle.genelSkor * 10).toFixed(1)}</div>
+                    <div class="metric-label" style="color: ${scoreColor}">Genel Skor</div>
+                    <div class="progress mt-2 mb-3" style="height: 8px;">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             style="width: ${mahalle.genelSkor * 100}%; background-color: ${scoreColor}">
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-road me-1"></i>Altyapı: ${(mahalle.altyapiSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-tree me-1"></i>Çevre: ${(mahalle.cevreSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-users me-1"></i>Sosyal: ${(mahalle.sosyalSkor * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-bus me-1"></i>Ulaşım: ${(mahalle.ulasimSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-shield-alt me-1"></i>Güvenlik: ${(mahalle.guvenlikSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-graduation-cap me-1"></i>Eğitim: ${(mahalle.egitimSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small style="color: ${scoreColor}"><i class="fas fa-heartbeat me-1"></i>Sağlık: ${(mahalle.saglikSkoru * 10).toFixed(1)}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Sıralama numarası için yardımcı fonksiyon
+        function getScoringRank(score) {
+            const sortedScores = Object.values(mahalleVerileri)
+                .map(m => m.genelSkor)
+                .sort((a, b) => a - b);
+            return sortedScores.indexOf(score) + 1;
+        }
+
+        // Geri bildirimleri saklamak için array
+        let feedbackList = [];
+
+
+
+        function updateFeedbackTable() {
+            const tableBody = document.getElementById('feedbackTableBody');
+            tableBody.innerHTML = feedbackList
+                .map(feedback => `
+                    <tr>
+                        <td>${feedback.tarih}</td>
+                        <td><strong>${feedback.isim}</strong></td>
+                        <td>${feedback.semt}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                ${feedback.kategori}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar ${getPuanClass(feedback.puan)}" 
+                                         role="progressbar" 
+                                         style="width: ${feedback.puan * 10}%">
+                                    </div>
+                                </div>
+                                <span class="ms-2">${feedback.puan}/10</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-wrap" style="max-width: 300px;">
+                                ${feedback.mesaj}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge ${getDurumClass(feedback.durum)}">
+                                ${feedback.durum}
+                            </span>
+                        </td>
+                    </tr>
+                `)
+                .join('');
+        }
+
+        function getPuanClass(puan) {
+            if (puan >= 8) return 'bg-success';
+            if (puan >= 6) return 'bg-info';
+            if (puan >= 4) return 'bg-warning';
+            return 'bg-danger';
+        }
+
+        function getDurumClass(durum) {
+            switch (durum) {
+                case 'İnceleniyor': return 'bg-warning';
+                case 'Tamamlandı': return 'bg-success';
+                case 'Reddedildi': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        // Semtleri puana göre sıralama fonksiyonu
+        function semtleriPuanaGoreSirala() {
+            return Object.values(mahalleVerileri)
+                .sort((a, b) => b.genelSkor - a.genelSkor)
+                .map((semt, index) => ({
+                    ...semt,
+                    sira: index + 1
+                }));
+        }
+
+        // Sıralanmış semtleri al
+        const siraliSemtler = semtleriPuanaGoreSirala();
+
+        // Aylık değişim grafiği
+        const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+        new Chart(monthlyTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'],
+                datasets: [
+                    {
+                        label: 'Şehir Puanı',
+                        data: [6.8, 6.9, 7.0, 7.1, 7.2, 7.2],
+                        borderColor: '#006064',
+                        backgroundColor: 'rgba(0, 96, 100, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Kritik Bölgeler',
+                        data: [8, 7, 6, 5, 4, 4],
+                        borderColor: '#ff9800',
+                        backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Şikayetler',
+                        data: [250, 230, 210, 200, 190, 183],
+                        borderColor: '#c62828',
+                        backgroundColor: 'rgba(198, 40, 40, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Kaynak Verimliliği',
+                        data: [82, 83, 85, 86, 88, 89],
+                        borderColor: '#2e7d32',
+                        backgroundColor: 'rgba(46, 125, 50, 0.2)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleColor: '#006064',
+                        bodyColor: '#006064',
+                        borderColor: 'rgba(0, 96, 100, 0.2)',
+                        borderWidth: 2,
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        boxPadding: 4,
+                        usePointStyle: true,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.parsed.y;
+                                return `${label}: ${value}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0, 96, 100, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#006064'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#006064'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+
+        // Semt detayları bölümünü oluştur
+        function createNeighborhoodStats() {
+            const statsContainer = document.getElementById('neighborhoodStats');
+            const scoreCardsContainer = document.getElementById('scoreCards');
+            
+            // Semtleri puana göre sırala (düşükten yükseğe)
+            const sortedNeighborhoods = Object.values(mahalleVerileri)
+                .sort((a, b) => a.genelSkor - b.genelSkor);
+
+            // Her iki container'ı da temizle
+            statsContainer.innerHTML = '';
+            scoreCardsContainer.innerHTML = '';
+
+            // Her semt için detay ve skor kartlarını oluştur
+            sortedNeighborhoods.forEach((mahalle, index) => {
+                const scoreColor = getScoreColor(mahalle.genelSkor, allScores);
+                
+                // Semt detay kartı
+                const statItem = document.createElement('div');
+                statItem.className = 'stat-item';
+                statItem.setAttribute('data-index', index);
+                
+                // Header
+                const header = `
+                    <div class="stat-header">
+                        <div class="stat-title" style="font-size: 1.2rem; font-weight: 600;">${mahalle.ad}</div>
+                        <div class="stat-score" style="background: ${scoreColor}20; color: ${scoreColor}; padding: 5px 10px; border-radius: 5px;">
+                            ${(mahalle.genelSkor * 10).toFixed(1)}
+                        </div>
+                    </div>
+                `;
+
+                // Charts container
+                const chartsContainer = `
+                    <div class="stat-charts-container">
+                        <div class="stat-chart-wrapper">
+                            <canvas id="radarChart_${index}"></canvas>
+                        </div>
+                        <div class="stat-chart-wrapper">
+                            <canvas id="trendChart_${index}"></canvas>
+                        </div>
+                    </div>
+                `;
+
+                // Actions
+                const actions = `
+                    <div class="actions-list">
+                        <strong>Önerilen Aksiyonlar:</strong>
+                        <ul class="mt-2">
+                            ${mahalle.onerilenAksiyonlar.map(({aksiyon}) => `<li>${aksiyon}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                statItem.innerHTML = header + chartsContainer + actions;
+                statsContainer.appendChild(statItem);
+
+                // Skor kartı
+                const scoreClass = mahalle.genelSkor >= 0.9 ? 'score-high' : 
+                                 mahalle.genelSkor >= 0.8 ? 'score-medium' : 'score-low';
+                
+                const scoreCard = document.createElement('div');
+                scoreCard.className = `score-card ${scoreClass} animate__animated animate__fadeIn`;
+                scoreCard.setAttribute('data-index', index);
+                
+                scoreCard.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4>${mahalle.ad}</h4>
+                        <small class="text-muted">Sıralama: ${index + 1}</small>
+                    </div>
+                    <div class="metric-value" style="color: ${scoreColor}">${(mahalle.genelSkor * 10).toFixed(1)}</div>
+                    <div class="metric-label" style="color: ${scoreColor}">Genel Skor</div>
+                    <div class="progress mt-2 mb-3" style="height: 8px;">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             style="width: ${mahalle.genelSkor * 100}%; background-color: ${scoreColor}">
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <small><i class="fas fa-road me-1"></i>Altyapı: ${(mahalle.altyapiSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><i class="fas fa-tree me-1"></i>Çevre: ${(mahalle.cevreSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><i class="fas fa-users me-1"></i>Sosyal: ${(mahalle.sosyalSkor * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><i class="fas fa-bus me-1"></i>Ulaşım: ${(mahalle.ulasimSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><i class="fas fa-shield-alt me-1"></i>Güvenlik: ${(mahalle.guvenlikSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><i class="fas fa-graduation-cap me-1"></i>Eğitim: ${(mahalle.egitimSkoru * 10).toFixed(1)}</small>
+                        </div>
+                        <div class="col-6">
+                            <small><i class="fas fa-heartbeat me-1"></i>Sağlık: ${(mahalle.saglikSkoru * 10).toFixed(1)}</small>
+                        </div>
+                    </div>
+                `;
+                
+                scoreCardsContainer.appendChild(scoreCard);
+
+                // Radar Chart
+                const radarCtx = document.getElementById(`radarChart_${index}`).getContext('2d');
+                new Chart(radarCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Altyapı', 'Çevre', 'Sosyal', 'Ulaşım', 'Güvenlik', 'Eğitim', 'Sağlık'],
+                        datasets: [{
+                            label: 'Semt Skorları',
+                            data: [
+                                mahalle.altyapiSkoru * 10,
+                                mahalle.cevreSkoru * 10,
+                                mahalle.sosyalSkor * 10,
+                                mahalle.ulasimSkoru * 10,
+                                mahalle.guvenlikSkoru * 10,
+                                mahalle.egitimSkoru * 10,
+                                mahalle.saglikSkoru * 10
+                            ],
+                            backgroundColor: `${scoreColor}40`,
+                            borderColor: scoreColor,
+                            borderWidth: 2,
+                            pointBackgroundColor: scoreColor,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 10,
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+
+                // Trend Chart
+                const trendCtx = document.getElementById(`trendChart_${index}`).getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1Ç', '2Ç', '3Ç', '4Ç'],
+                        datasets: [{
+                            label: 'Trend',
+                            data: mahalle.trendData.map(score => score * 10),
+                            borderColor: scoreColor,
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: `${scoreColor}20`
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: Math.min(...mahalle.trendData.map(score => score * 10)) - 1,
+                                max: Math.max(...mahalle.trendData.map(score => score * 10)) + 1
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Scroll senkronizasyonu
+            statsContainer.addEventListener('scroll', () => {
+                const scrollPercentage = statsContainer.scrollTop / (statsContainer.scrollHeight - statsContainer.clientHeight);
+                scoreCardsContainer.scrollTop = scrollPercentage * (scoreCardsContainer.scrollHeight - scoreCardsContainer.clientHeight);
+            });
+
+            scoreCardsContainer.addEventListener('scroll', () => {
+                const scrollPercentage = scoreCardsContainer.scrollTop / (scoreCardsContainer.scrollHeight - scoreCardsContainer.clientHeight);
+                statsContainer.scrollTop = scrollPercentage * (statsContainer.scrollHeight - statsContainer.clientHeight);
+            });
+        }
+
+        // Semt detaylarını oluştur
+        createNeighborhoodStats();
+
+        // İlk geri bildirimleri ekle
+        feedbackList = [
+            {
+                tarih: '15.03.2025 14:30',
+                isim: 'ALİ EREN ÇELENK',
+                semt: 'Alsancak',
+                kategori: 'Altyapı',
+                puan: 8,
+                mesaj: 'Sahil şeridindeki yürüyüş yolları çok güzel düzenlenmiş, ancak bisiklet yolları biraz daha genişletilebilir.',
+                durum: 'İnceleniyor'
+            },
+            {
+                tarih: '14.03.2025 16:45',
+                isim: 'BERKAY AYDINOĞLU',
+                semt: 'Karşıyaka',
+                kategori: 'Çevre',
+                puan: 9,
+                mesaj: 'Sahildeki yeşil alanların bakımı çok iyi yapılıyor. Çocuk parkları da temiz ve bakımlı.',
+                durum: 'Tamamlandı'
+            },
+            {
+                tarih: '13.03.2025 10:15',
+                isim: 'SELİN GÜNEŞ',
+                semt: 'Bornova',
+                kategori: 'Ulaşım',
+                puan: 6,
+                mesaj: 'Metro istasyonuna giden yollarda daha fazla aydınlatma olmalı. Özellikle akşam saatlerinde yetersiz kalıyor.',
+                durum: 'İnceleniyor'
+            },
+            {
+                tarih: '12.03.2025 09:20',
+                isim: 'SILA AKYÜZ',
+                semt: 'Konak',
+                kategori: 'Sosyal',
+                puan: 7,
+                mesaj: 'Kültür merkezindeki etkinlikler çeşitlendirilmeli. Gençlere yönelik daha fazla aktivite düzenlenmeli.',
+                durum: 'İnceleniyor'
+            }
+        ];
+
+        // Tabloyu güncelle
+        updateFeedbackTable();
+
+        // Bütçe hesaplama fonksiyonu
+        function calculateBudgetAllocation() {
+            const totalBudget = parseFloat(document.getElementById('totalBudgetInput').value);
+            
+            if (!totalBudget || totalBudget <= 0) {
+                Swal.fire({
+                    title: 'Hata!',
+                    text: 'Lütfen geçerli bir bütçe miktarı giriniz.',
+                    icon: 'error',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#006064'
+                });
+                return;
+            }
+
+            // Toplam puan hesaplama
+            const totalScore = Object.values(mahalleVerileri)
+                .reduce((sum, mahalle) => sum + mahalle.genelSkor, 0);
+
+            // Bütçe dağılımı hesaplama
+            const budgetAllocations = Object.values(mahalleVerileri)
+                .map(mahalle => {
+                    const scoreRatio = mahalle.genelSkor / totalScore;
+                    const allocation = totalBudget * scoreRatio;
+                    
+                    // En yüksek potansiyel puana sahip aksiyonu bulma
+                    const bestAction = mahalle.onerilenAksiyonlar
+                        .reduce((best, current) => 
+                            current.potansiyelPuan > best.potansiyelPuan ? current : best
+                        );
+
+                    return {
+                        name: mahalle.ad,
+                        score: mahalle.genelSkor,
+                        percentage: scoreRatio * 100,
+                        budget: allocation,
+                        priority: bestAction.aksiyon,
+                        improvement: bestAction.potansiyelPuan
+                    };
+                })
+                .sort((a, b) => b.budget - a.budget);
+
+            // Tablo güncelleme
+            const tableBody = document.getElementById('budgetAllocationTable');
+            tableBody.innerHTML = budgetAllocations
+                .map(allocation => `
+                    <tr class="stat-item">
+                        <td><strong>${allocation.name}</strong></td>
+                        <td>${(allocation.score * 10).toFixed(1)}</td>
+                        <td>${allocation.percentage.toFixed(2)}%</td>
+                        <td>${allocation.budget.toLocaleString('tr-TR')} ₺</td>
+                        <td>
+                            <span class="badge bg-info">
+                                <i class="fas fa-arrow-right me-1"></i>${allocation.priority}
+                                <small class="ms-1">(+${allocation.improvement.toFixed(1)} puan)</small>
+                            </span>
+                        </td>
+                    </tr>
+                `)
+                .join('');
+
+            // Grafik güncelleme
+            const ctx = document.getElementById('budgetDistributionChart').getContext('2d');
+            if (window.budgetChart) {
+                window.budgetChart.destroy();
+            }
+
+            window.budgetChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: budgetAllocations.map(a => a.name),
+                    datasets: [{
+                        data: budgetAllocations.map(a => a.budget),
+                        backgroundColor: budgetAllocations.map(a => getScoreColor(a.score, allScores)),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw.toLocaleString('tr-TR');
+                                    const percentage = ((context.raw / totalBudget) * 100).toFixed(1);
+                                    return `${context.label}: ${value} ₺ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Başarılı mesajı gösterme
+            Swal.fire({
+                title: 'Bütçe Dağılımı Hesaplandı',
+                text: 'Bütçe dağılımı mahalle puanlarına göre başarıyla hesaplandı.',
+                icon: 'success',
+                confirmButtonText: 'Tamam',
+                confirmButtonColor: '#006064'
+            });
+        }
+
+        // Negatif yönler grafiği ve tablo
+        function updateNegativeAspectsSection() {
+            const ctx = document.getElementById('negativeAspectsChart').getContext('2d');
+            const neighborhoods = Object.values(mahalleVerileri);
+            
+            // Semtleri toplam risk puanına göre sırala
+            const sortedNeighborhoods = neighborhoods.map(n => ({
+                ...n,
+                totalRisk: (
+                    n.kontrolsuzGocSkoru +
+                    n.gecekondulasmaSkor +
+                    n.sucOranıSkoru +
+                    n.trafıkYogunluguSkoru +
+                    n.gurultuKirlilikSkoru
+                )
+            })).sort((a, b) => b.totalRisk - a.totalRisk);
+
+            // Grafik verilerini hazırla
+            const chartData = {
+                labels: sortedNeighborhoods.map(n => n.ad),
+                datasets: [
+                    {
+                        label: 'Kontrolsüz Göç',
+                        data: sortedNeighborhoods.map(n => n.kontrolsuzGocSkoru * 10),
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgb(255, 99, 132)',
+                    },
+                    {
+                        label: 'Gecekondulaşma',
+                        data: sortedNeighborhoods.map(n => n.gecekondulasmaSkor * 10),
+                        backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                        borderColor: 'rgb(255, 159, 64)',
+                    },
+                    {
+                        label: 'Suç Oranı',
+                        data: sortedNeighborhoods.map(n => n.sucOranıSkoru * 10),
+                        backgroundColor: 'rgba(255, 205, 86, 0.5)',
+                        borderColor: 'rgb(255, 205, 86)',
+                    },
+                    {
+                        label: 'Trafik Yoğunluğu',
+                        data: sortedNeighborhoods.map(n => n.trafıkYogunluguSkoru * 10),
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgb(75, 192, 192)',
+                    },
+                    {
+                        label: 'Gürültü Kirliliği',
+                        data: sortedNeighborhoods.map(n => n.gurultuKirlilikSkoru * 10),
+                        backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                        borderColor: 'rgb(153, 102, 255)',
+                    }
+                ]
+            };
+
+            // Grafik oluştur
+            if (window.negativeChart) {
+                window.negativeChart.destroy();
+            }
+            window.negativeChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            max: 50 // 5 faktör × max 10 puan
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Tabloyu güncelle
+            const tableBody = document.getElementById('riskTableBody');
+            tableBody.innerHTML = sortedNeighborhoods.map(n => `
+                <tr>
+                    <td><strong>${n.ad}</strong></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-danger" style="width: ${n.kontrolsuzGocSkoru * 100}%"></div>
+            </div>
+                            <span class="ms-2">${(n.kontrolsuzGocSkoru * 10).toFixed(1)}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-warning" style="width: ${n.gecekondulasmaSkor * 100}%"></div>
+                            </div>
+                            <span class="ms-2">${(n.gecekondulasmaSkor * 10).toFixed(1)}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-info" style="width: ${n.sucOranıSkoru * 100}%"></div>
+                            </div>
+                            <span class="ms-2">${(n.sucOranıSkoru * 10).toFixed(1)}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: ${n.trafıkYogunluguSkoru * 100}%"></div>
+                            </div>
+                            <span class="ms-2">${(n.trafıkYogunluguSkoru * 10).toFixed(1)}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-secondary" style="width: ${n.gurultuKirlilikSkoru * 100}%"></div>
+                            </div>
+                            <span class="ms-2">${(n.gurultuKirlilikSkoru * 10).toFixed(1)}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>${(n.totalRisk * 10).toFixed(1)}</strong>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Sayfa yüklendiğinde negatif yönler bölümünü güncelle
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNegativeAspectsSection();
+        });
+
+        // Login System
+        let userType = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+            
+            document.querySelector(`.login-tab[onclick*="${tab}"]`).classList.add('active');
+            document.getElementById(`${tab}Form`).classList.add('active');
+        }
+
+        function login(type) {
+            let isValid = false;
+            
+            if (type === 'employee') {
+                const tc = document.getElementById('employeeTc').value;
+                const password = document.getElementById('employeePassword').value;
+                isValid = tc === '12345678910' && password === 'password';
+            } else {
+                const tc = document.getElementById('citizenTc').value;
+                isValid = tc === '11111111111';
+            }
+
+            if (isValid) {
+                userType = type;
+                document.getElementById('loginContainer').style.display = 'none';
+                document.body.classList.remove('login-active');
+                showDynamicMenu();
+                
+                // Hide/show elements based on user type
+                if (type === 'citizen') {
+                    // Show citizen-only elements
+                    document.querySelectorAll('.citizen-only').forEach(el => el.style.display = 'block');
+                    // Hide employee-only elements
+                    document.querySelectorAll('.employee-only').forEach(el => el.style.display = 'none');
+                    // Hide budget section and nav link
+                    document.getElementById('budget').style.display = 'none';
+                    document.querySelector('a[href="#budget"]').parentElement.style.display = 'none';
+                } else {
+                    // Hide citizen-only elements
+                    document.querySelectorAll('.citizen-only').forEach(el => el.style.display = 'none');
+                    // Show employee-only elements
+                    document.querySelectorAll('.employee-only').forEach(el => el.style.display = 'block');
+                    // Show budget section and nav link
+                    document.getElementById('budget').style.display = 'block';
+                    document.querySelector('a[href="#budget"]').parentElement.style.display = 'block';
+                }
+
+                // Update investments table
+                updateInvestmentsTable();
+            } else {
+                alert('Geçersiz giriş bilgileri!');
+            }
+        }
+
+        function showDynamicMenu() {
+            const menu = document.getElementById('dynamicMenu');
+            menu.style.display = 'grid';
+            
+            // Auto-hide menu after 5 seconds
+            setTimeout(() => {
+                menu.style.display = 'none';
+            }, 5000);
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('dynamicMenu').style.display = 'none';
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show login container and hide main content
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.body.classList.add('login-active');
+            
+            // Hide budget section and related elements initially
+            document.getElementById('budget').style.display = 'none';
+            document.querySelectorAll('.employee-only').forEach(el => el.style.display = 'none');
+            document.querySelector('a[href="#budget"]').parentElement.style.display = 'none';
+
+            // Hide citizen-only elements initially
+            document.querySelectorAll('.citizen-only').forEach(el => el.style.display = 'none');
+        });
+
+        // Yatırım verileri
+        let investments = [
+            {
+                tarih: '15.03.2025',
+                yatirimci: 'Aykan Akıncılar',
+                miktar: 250000,
+                proje: 'Alsancak Sahil Düzenlemesi',
+                durum: 'Devam Ediyor',
+                ilerleme: 65
+            },
+            {
+                tarih: '14.03.2025',
+                yatirimci: 'Batuhan Umut Bayat',
+                miktar: 500000,
+                proje: 'Karşıyaka Metro Hattı Genişletme',
+                durum: 'Onay Bekliyor',
+                ilerleme: 0
+            },
+            {
+                tarih: '13.03.2025',
+                yatirimci: 'Bahadır Balibaşa',
+                miktar: 350000,
+                proje: 'Bornova Yeşil Alan Projesi',
+                durum: 'Tamamlandı',
+                ilerleme: 100
+            }
+        ];
+
+        // Mevcut projeler
+        const projects = [
+            {
+                id: 1,
+                ad: 'Alsancak Sahil Düzenlemesi',
+                hedefButce: 1000000,
+                toplanmisButce: 250000,
+                detay: 'Sahil şeridinin modernizasyonu, yürüyüş ve bisiklet yollarının genişletilmesi.',
+                baslangicTarihi: '01.03.2025',
+                bitisTarihi: '01.09.2025'
+            },
+            {
+                id: 2,
+                ad: 'Karşıyaka Metro Hattı Genişletme',
+                hedefButce: 2000000,
+                toplanmisButce: 500000,
+                detay: 'Metro hattının Karşıyaka sahil bölgesine uzatılması ve yeni istasyonların yapımı.',
+                baslangicTarihi: '01.04.2025',
+                bitisTarihi: '01.04.2026'
+            },
+            {
+                id: 3,
+                ad: 'Bornova Yeşil Alan Projesi',
+                hedefButce: 800000,
+                toplanmisButce: 350000,
+                detay: 'Bornova bölgesinde yeni parklar ve yeşil alanların oluşturulması.',
+                baslangicTarihi: '01.02.2025',
+                bitisTarihi: '01.08.2025'
+            }
+        ];
+
+        // Yatırım tablosunu güncelle
+        function updateInvestmentsTable() {
+            const tableBody = document.getElementById('investmentsTableBody');
+            tableBody.innerHTML = investments.sort((a, b) => b.miktar - a.miktar).map(inv => `
+                <tr>
+                    <td>${inv.tarih}</td>
+                    <td>${inv.yatirimci}</td>
+                    <td>${inv.miktar.toLocaleString('tr-TR')} ₺</td>
+                    <td>${inv.proje}</td>
+                    <td>
+                        <span class="badge ${getBadgeClass(inv.durum)}">${inv.durum}</span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar ${getProgressBarClass(inv.ilerleme)}" 
+                                 role="progressbar" 
+                                 style="width: ${inv.ilerleme}%" 
+                                 aria-valuenow="${inv.ilerleme}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted">${inv.ilerleme}%</small>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Yatırım formunu göster
+        function showInvestmentForm() {
+            const form = document.getElementById('investmentForm');
+            form.style.display = 'block';
+            
+            // Proje seçeneklerini doldur
+            const projectSelect = document.getElementById('projectSelect');
+            projectSelect.innerHTML = '<option value="">Proje Seçiniz</option>' + 
+                projects.map(p => `
+                    <option value="${p.id}">${p.ad} (Hedef: ${p.hedefButce.toLocaleString('tr-TR')} ₺)</option>
+                `).join('');
+        }
+
+        // Proje detaylarını göster
+        function showProjectDetails(projectId) {
+            const project = projects.find(p => p.id === parseInt(projectId));
+            const detailsDiv = document.getElementById('projectDetails');
+            
+            if (project) {
+                detailsDiv.innerHTML = `
+                    <div class="mb-2">
+                        <strong>Proje:</strong> ${project.ad}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Hedef Bütçe:</strong> ${project.hedefButce.toLocaleString('tr-TR')} ₺
+                    </div>
+                    <div class="mb-2">
+                        <strong>Toplanan Bütçe:</strong> ${project.toplanmisButce.toLocaleString('tr-TR')} ₺
+                    </div>
+                    <div class="mb-2">
+                        <strong>Başlangıç:</strong> ${project.baslangicTarihi}
+                    </div>
+                    <div class="mb-2">
+                        <strong>Bitiş:</strong> ${project.bitisTarihi}
+                    </div>
+                    <div class="mt-3">
+                        <strong>Detay:</strong><br>
+                        ${project.detay}
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" 
+                                 role="progressbar" 
+                                 style="width: ${(project.toplanmisButce / project.hedefButce * 100)}%" 
+                                 aria-valuenow="${(project.toplanmisButce / project.hedefButce * 100)}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted">Bütçe İlerlemesi: ${Math.round(project.toplanmisButce / project.hedefButce * 100)}%</small>
+                    </div>
+                `;
+            } else {
+                detailsDiv.innerHTML = 'Lütfen bir proje seçiniz.';
+            }
+        }
+
+        // Yatırım gönder
+        function submitInvestment() {
+            const amount = document.getElementById('investmentAmount').value;
+            const projectId = document.getElementById('projectSelect').value;
+            
+            if (!amount || !projectId) {
+                alert('Lütfen tüm alanları doldurunuz.');
+                return;
+            }
+
+            const project = projects.find(p => p.id === parseInt(projectId));
+            if (!project) {
+                alert('Geçersiz proje seçimi.');
+                return;
+            }
+
+            // Yeni yatırımı ekle
+            const newInvestment = {
+                tarih: new Date().toLocaleDateString('tr-TR'),
+                yatirimci: 'Vatandaş',
+                miktar: parseInt(amount),
+                proje: project.ad,
+                durum: 'Onay Bekliyor',
+                ilerleme: 0
+            };
+
+            investments.push(newInvestment);
+            project.toplanmisButce += parseInt(amount);
+
+            // Tabloyu güncelle
+            updateInvestmentsTable();
+            
+            // Formu temizle ve gizle
+            document.getElementById('investmentAmount').value = '';
+            document.getElementById('projectSelect').value = '';
+            document.getElementById('investmentForm').style.display = 'none';
+            
+            alert('Yatırımınız başarıyla kaydedildi ve onay için gönderildi.');
+        }
+
+        // Badge sınıfını belirle
+        function getBadgeClass(durum) {
+            switch (durum) {
+                case 'Tamamlandı':
+                    return 'bg-success';
+                case 'Devam Ediyor':
+                    return 'bg-primary';
+                case 'Onay Bekliyor':
+                    return 'bg-warning text-dark';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+
+        // Progress bar sınıfını belirle
+        function getProgressBarClass(ilerleme) {
+            if (ilerleme === 100) return 'bg-success';
+            if (ilerleme > 66) return 'bg-primary';
+            if (ilerleme > 33) return 'bg-info';
+            return 'bg-warning';
+        }
+
+        // Proje seçimi değiştiğinde detayları güncelle
+        document.getElementById('projectSelect')?.addEventListener('change', (e) => {
+            showProjectDetails(e.target.value);
+        });
+
+        // Sayfa yüklendiğinde yatırım tablosunu güncelle
+        document.addEventListener('DOMContentLoaded', function() {
+            updateInvestmentsTable();
+        });
+
+        // Dynamic Menu güncelleme
+        function showDynamicMenu() {
+            const menu = document.getElementById('dynamicMenu');
+            menu.innerHTML = `
+                <div class="menu-item" onclick="scrollToSection('dashboard')">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Dashboard</h4>
+                </div>
+                <div class="menu-item" onclick="scrollToSection('analysis')">
+                    <i class="fas fa-analytics"></i>
+                    <h4>Analiz</h4>
+                </div>
+                <div class="menu-item" onclick="scrollToSection('investments')">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <h4>Yatırımlar</h4>
+                </div>
+                <div class="menu-item employee-only" onclick="scrollToSection('budget')">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h4>Semt Bütçe Planlaması</h4>
+                </div>
+                <div class="menu-item" onclick="scrollToSection('negativeAspects')">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Risk Analizi</h4>
+                </div>
+                <div class="menu-item citizen-only" onclick="scrollToSection('feedbackSubmission')">
+                    <i class="fas fa-comment-alt"></i>
+                    <h4>Vatandaş Bildirim Formu</h4>
+                </div>
+                <div class="menu-item" onclick="scrollToSection('feedbackList')">
+                    <i class="fas fa-list-alt"></i>
+                    <h4>Geri Bildirim Listesi</h4>
+                </div>
+            `;
+            menu.style.display = 'grid';
+            
+            // Auto-hide menu after 5 seconds
+            setTimeout(() => {
+                menu.style.display = 'none';
+            }, 5000);
+        }
+
+        // Çıkış işlemi için fonksiyon
+        function handleLogout() {
+            // Oturum verilerini temizle
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userTC');
+            localStorage.removeItem('userType');
+            
+            // Login container'ı göster ve main content'i gizle
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.body.classList.add('login-active');
+            
+            // Budget section ve ilgili elementleri gizle
+            document.getElementById('budget').style.display = 'none';
+            document.querySelectorAll('.employee-only').forEach(el => el.style.display = 'none');
+            document.querySelector('a[href="#budget"]').parentElement.style.display = 'none';
+            
+            // Sayfayı en başa kaydır
+            window.scrollTo(0, 0);
+            
+            // Sayfayı yeniden yükle
+            window.location.reload();
+        }
+
+        // Yeni bildirim gönderme fonksiyonu
+        function submitFeedback(event) {
+            event.preventDefault();
+
+            // Form verilerini al
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const semt = document.getElementById('feedbackSemt').value;
+            const kategori = document.getElementById('feedbackCategory').value;
+            const puan = parseInt(document.getElementById('feedbackRating').value);
+            const mesaj = document.getElementById('feedbackMessage').value;
+
+            // İsim alanlarının doluluğunu kontrol et
+            if (!firstName || !lastName) {
+                alert('İsim ve soyisim alanları zorunludur.');
+                return;
+            }
+
+            // Yeni bildirimi oluştur
+            const yeniBildirim = {
+                tarih: new Date().toLocaleString('tr-TR'),
+                isim: `${firstName} ${lastName}`.toUpperCase(),
+                semt: semt,
+                kategori: kategori,
+                puan: puan,
+                mesaj: mesaj,
+                durum: 'İnceleniyor'
+            };
+
+            // Bildirimi listeye ekle
+            feedbackList.unshift(yeniBildirim);
+
+            // Tabloyu güncelle
+            updateFeedbackTable();
+
+            // Formu temizle
+            document.getElementById('feedbackForm').reset();
+            document.getElementById('ratingValue').textContent = '5';
+
+            // Başarı mesajı göster
+            alert('Bildiriminiz başarıyla gönderildi. En kısa sürede incelenecektir.');
+        }
+
+        // İsim alanlarını göster/gizle
+        function toggleNameFields() {
+            const nameFields = document.getElementById('nameFields');
+            const showNameFields = document.getElementById('showNameFields');
+            nameFields.style.display = showNameFields.checked ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html> 
